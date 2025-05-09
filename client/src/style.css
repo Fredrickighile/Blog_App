@@ -1,0 +1,325 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Custom Components */
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-600 text-white rounded-md transition-all hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-primary-600 border border-primary-600 rounded-md transition-all hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .input-primary {
+    @apply w-full px-3 py-2 bg-white border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-card overflow-hidden transition-all hover:shadow-card-hover;
+  }
+
+  .card-hover {
+    @apply hover:-translate-y-1 transition-transform duration-300;
+  }
+
+  .prose-custom {
+    @apply prose prose-lg max-w-none prose-headings:font-serif prose-p:text-secondary-700 prose-a:text-primary-600 prose-a:no-underline hover:prose-a:text-primary-800 prose-img:rounded-lg;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .navbar {
+    @apply sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-secondary-200;
+  }
+
+  .navbar-container {
+    @apply py-4 mx-auto max-w-7xl px-4 flex items-center justify-between;
+  }
+
+  .navbar-logo {
+    @apply h-12 w-auto;
+  }
+
+  .navbar-links {
+    @apply flex items-center space-x-6;
+  }
+
+  .navbar-links h6 {
+    @apply text-sm font-medium text-secondary-600 hover:text-primary-600 transition-colors;
+  }
+
+  .navbar-write {
+    @apply ml-4 bg-primary-600 text-white rounded-full p-3 transition-all hover:bg-primary-700;
+  }
+
+  .auth {
+    @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-100;
+  }
+
+  .auth-form {
+    @apply w-full max-w-md bg-white shadow-xl rounded-2xl p-8;
+  }
+
+  .posts {
+    @apply space-y-24 my-16;
+  }
+
+  .post {
+    @apply flex flex-col md:flex-row gap-8 md:gap-16;
+  }
+
+  .post:nth-child(even) {
+    @apply md:flex-row-reverse;
+  }
+
+  .post-img {
+    @apply relative;
+  }
+
+  .post-img::after {
+    @apply content-[''] absolute -bottom-4 -right-4 w-full h-full bg-primary-100 rounded-lg -z-10;
+  }
+
+  .post-content {
+    @apply flex flex-col justify-between gap-4;
+  }
+
+  .post-content h1 {
+    @apply text-3xl font-serif font-bold text-secondary-800;
+  }
+
+  .post-content p {
+    @apply text-secondary-600;
+  }
+
+  .single {
+    @apply container mx-auto max-w-5xl px-4 py-8 grid grid-cols-1 lg:grid-cols-7 gap-8;
+  }
+
+  .single-content {
+    @apply lg:col-span-5;
+  }
+
+  .single-content img {
+    @apply rounded-2xl w-full h-auto max-h-96 object-cover;
+  }
+
+  .single-user {
+    @apply flex items-center gap-4 my-6;
+  }
+
+  .single-user img {
+    @apply w-12 h-12 rounded-full;
+  }
+
+  .single-content h1 {
+    @apply text-4xl font-serif font-bold text-secondary-900 mb-6;
+  }
+
+  .single-menu {
+    @apply lg:col-span-2 space-y-6;
+  }
+
+  .single-menu h1 {
+    @apply text-xl font-semibold text-secondary-700 border-b border-secondary-200 pb-2;
+  }
+
+  .single-post {
+    @apply card p-4 space-y-3;
+  }
+
+  .single-post img {
+    @apply rounded-lg w-full h-48 object-cover;
+  }
+
+  .single-post h2 {
+    @apply text-lg font-medium text-secondary-800;
+  }
+
+  .add {
+    @apply container mx-auto max-w-5xl px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8;
+  }
+
+  .add-content {
+    @apply lg:col-span-3 space-y-4;
+  }
+
+  .editor-container {
+    @apply border border-secondary-200 rounded-lg overflow-hidden;
+  }
+
+  .editor {
+    @apply min-h-[300px];
+  }
+
+  .add-menu {
+    @apply lg:col-span-1 space-y-6;
+  }
+
+  .menu-item {
+    @apply card p-6 space-y-4;
+  }
+
+  .menu-item h1 {
+    @apply text-xl font-semibold text-secondary-700 border-b border-secondary-100 pb-2;
+  }
+
+  .menu-buttons {
+    @apply flex gap-3;
+  }
+
+  .menu-cat {
+    @apply flex items-center gap-2 text-secondary-600;
+  }
+
+  .footer {
+    @apply bg-secondary-900 text-white py-8;
+  }
+
+  .footer-container {
+    @apply max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4;
+  }
+
+  .footer-logo {
+    @apply h-10 w-auto;
+  }
+
+  .footer-text {
+    @apply text-secondary-300;
+  }
+
+  .footer-text b {
+    @apply text-white font-medium;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Add this to your style.css file */
+
+/* ReactQuill Editor Styles */
+.editor-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  min-height: 300px;
+}
+
+.ql-container {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  height: auto !important;
+  min-height: 200px;
+}
+
+.ql-editor {
+  min-height: 200px;
+  font-family: 'Inter', sans-serif;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+.ql-toolbar {
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 0.5rem !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  background-color: #f8fafc;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+}
+
+.ql-formats {
+  margin-right: 10px !important;
+}
+
+/* Fix Quill snow theme compatibility with Tailwind */
+.ql-snow .ql-stroke {
+  stroke: #64748b;
+}
+
+.ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill {
+  fill: #64748b;
+}
+
+.ql-snow .ql-picker {
+  color: #64748b;
+}
+
+.ql-snow .ql-picker-options {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Fix ReactQuill toolbar buttons */
+.ql-snow.ql-toolbar button, 
+.ql-snow .ql-toolbar button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ql-snow.ql-toolbar button:hover,
+.ql-snow .ql-toolbar button:hover,
+.ql-snow.ql-toolbar button.ql-active,
+.ql-snow .ql-toolbar button.ql-active {
+  background-color: #f0fdfa;
+}
+
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #0d9488;
+}
+
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill,
+.ql-snow.ql-toolbar button:hover .ql-stroke.ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-stroke.ql-fill {
+  fill: #0d9488;
+}
+
+/* Fix for the fade-in class */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Fix for the min-h class that might be conflicting */
+.editor-container .ql-container {
+  min-height: 250px !important;
+}
+
+.editor-container .ql-editor {
+  min-height: 250px !important;
+}

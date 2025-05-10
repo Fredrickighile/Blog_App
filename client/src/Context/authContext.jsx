@@ -10,7 +10,7 @@ export const AuthContextProvider = ({ children }) => {
 
   const login = async (inputs) => {
     const res = await axios.post(
-      "http://localhost:8000/api/auth/login",
+      "https://blog-app-sable-three.vercel.app/api/auth/login",
       inputs,
       {
         withCredentials: true,
@@ -21,7 +21,7 @@ export const AuthContextProvider = ({ children }) => {
 
   const logout = async () => {
     await axios.post(
-      "http://localhost:8000/api/auth/logout",
+      "https://blog-app-sable-three.vercel.app/api/auth/logout",
       {},
       {
         withCredentials: true,

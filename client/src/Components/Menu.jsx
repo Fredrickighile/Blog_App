@@ -17,7 +17,7 @@ function Menu({ cat }) {
       setError(null);
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/posts/?cat=${cat}`
+          `https://blog-app-sable-three.vercel.app/api/posts/?cat=${cat}`
         );
         setPosts(res.data);
       } catch (err) {

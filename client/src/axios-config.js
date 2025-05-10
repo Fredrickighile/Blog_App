@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Create an instance of axios with default configuration
 const api = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: "https://blog-app-sable-three.vercel.app/api",
   withCredentials: true, // This is important for sending cookies
   headers: {
     "Content-Type": "application/json",

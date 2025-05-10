@@ -20,7 +20,9 @@ function Home() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await axios.get(`http://localhost:8000/api/posts${cat}`);
+        const res = await axios.get(
+          `https://blog-app-sable-three.vercel.app/api/posts${cat}`
+        );
         setPosts(res.data);
       } catch (err) {
         console.error("Error fetching posts:", err);

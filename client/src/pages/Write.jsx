@@ -112,7 +112,7 @@ const Write = () => {
       formData.append("file", file);
 
       const res = await axios.post(
-        "http://localhost:8000/api/upload",
+        "https://blog-app-sable-three.vercel.app/api/upload",
         formData,
         {
           onUploadProgress: (progressEvent) => {
@@ -161,14 +161,17 @@ const Write = () => {
       const imgUrl = file ? await upload() : state?.img || "";
 
       if (state) {
-        await axios.put(`http://localhost:8000/api/posts/${state.id}`, {
-          title,
-          desc: value,
-          cat,
-          img: imgUrl,
-        });
+        await axios.put(
+          `https://blog-app-sable-three.vercel.app/api/posts/${state.id}`,
+          {
+            title,
+            desc: value,
+            cat,
+            img: imgUrl,
+          }
+        );
       } else {
-        await axios.post(`http://localhost:8000/api/posts/`, {
+        await axios.post(`https://blog-app-sable-three.vercel.app/api/posts/`, {
           title,
           desc: value,
           cat,

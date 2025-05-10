@@ -40,7 +40,7 @@ const Single = () => {
       setError(null);
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/posts/${postId}`
+          `https://blog-app-sable-three.vercel.app/api/posts/${postId}`
         );
         setPost(res.data);
         setLikeCount(res.data.likes || 0);
@@ -63,12 +63,15 @@ const Single = () => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:8000/api/posts/${postId}`, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      await axios.delete(
+        `https://blog-app-sable-three.vercel.app/api/posts/${postId}`,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       navigate("/");
     } catch (err) {
       console.error("Error deleting post:", err);

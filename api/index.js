@@ -18,8 +18,11 @@ const app = express();
 // Enable CORS for all origins (or configure as needed)
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend origin
-    credentials: true, // for cookies/auth
+    origin: [
+      "http://localhost:5173",
+      "https://blog-app-sable-three.vercel.app",
+    ],
+    credentials: true,
   })
 );
 

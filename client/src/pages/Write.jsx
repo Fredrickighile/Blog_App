@@ -8,6 +8,10 @@ import { motion } from "framer-motion";
 import { FiUpload, FiSave, FiX, FiImage, FiCheckCircle } from "react-icons/fi";
 import { FaPenAlt } from "react-icons/fa";
 
+// Configure axios defaults for all requests
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = "https://blog-app-sable-three.vercel.app";
+
 const Write = () => {
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -17,7 +21,7 @@ const Write = () => {
   const [value, setValue] = useState(state?.desc || "");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(
-    state?.img ? `/upload/${state.img}` : null
+    state?.img ? `${axios.defaults.baseURL}/upload/${state.img}` : null
   );
   const [cat, setCat] = useState(state?.category || "");
   const [error, setError] = useState("");
@@ -29,15 +33,12 @@ const Write = () => {
     if (!currentUser) {
       navigate("/login");
     }
-
     document.title = state ? "Edit Post | Blog" : "Create Post | Blog";
-
     return () => {
       document.title = "Blog";
     };
   }, [currentUser, navigate, state]);
 
-  // Clear error after 5 seconds
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(""), 5000);
@@ -48,19 +49,13 @@ const Write = () => {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -68,20 +63,15 @@ const Write = () => {
 
   const handleFile = (file) => {
     if (!file) return;
-
-    // Check file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
       setError("Image size must be less than 2MB");
       return;
     }
-
-    // Check file type
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
       setError("Please select a valid image file (JPG, PNG, or WEBP)");
       return;
     }
-
     setFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -111,44 +101,36 @@ const Write = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await axios.post(
-        "https://blog-app-sable-three.vercel.app/api/upload",
-        formData,
-        {
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setProgress(percentCompleted);
-          },
-        }
-      );
-      return res.data;
+      const res = await axios.post("/api/upload", formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setProgress(percentCompleted);
+        },
+      });
+      return res.data.filename;
     } catch (err) {
-      console.error("Error uploading file:", err);
-      // Extract just the message from the error
-      const errorMessage =
-        err.response?.data?.message || typeof err.response?.data === "string"
-          ? err.response.data
-          : err.message || "Image upload failed";
-      throw new Error(errorMessage); // Throw just the message string
+      console.error("Upload error:", err);
+      throw err.response?.data?.error || "Image upload failed";
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!title.trim()) {
       setError("Please enter a title");
       return;
     }
-
     if (!value.trim() || value === "<p><br></p>") {
       setError("Please enter post content");
       return;
     }
-
     if (!cat) {
       setError("Please select a category");
       return;
@@ -160,38 +142,32 @@ const Write = () => {
     try {
       const imgUrl = file ? await upload() : state?.img || "";
 
+      const postData = {
+        title,
+        desc: value,
+        cat,
+        img: imgUrl,
+        date: new Date().toISOString(),
+      };
+
       if (state) {
-        await axios.put(
-          `https://blog-app-sable-three.vercel.app/api/posts/${state.id}`,
-          {
-            title,
-            desc: value,
-            cat,
-            img: imgUrl,
-          }
-        );
+        await axios.put(`/api/posts/${state.id}`, postData, {
+          withCredentials: true,
+        });
       } else {
-        await axios.post(`https://blog-app-sable-three.vercel.app/api/posts/`, {
-          title,
-          desc: value,
-          cat,
-          img: imgUrl,
-          date: new Date().toISOString(),
+        await axios.post("/api/posts/", postData, {
+          withCredentials: true,
         });
       }
 
       navigate("/");
     } catch (err) {
-      console.error("Error submitting post:", err);
-      // Ensure we only set a string error message
-      const errorMessage =
-        typeof err === "string"
-          ? err
-          : err.response?.data?.message ||
-            (typeof err.response?.data === "string"
-              ? err.response.data
-              : err.message || "An error occurred while saving the post");
-      setError(errorMessage.toString()); // Ensure it's a string
+      console.error("Submission error:", err);
+      setError(
+        err.message ||
+          err.response?.data?.message ||
+          "An error occurred while saving the post"
+      );
     } finally {
       setLoading(false);
     }
@@ -235,7 +211,7 @@ const Write = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg mb-6"
                 >
-                  {error.toString()} {/* Ensure error is displayed as string */}
+                  {error}
                 </motion.div>
               )}
 

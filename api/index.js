@@ -29,6 +29,11 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// Add a root route handler
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Blog API server is running" });
+});
+
 // Serve uploaded files statically
 app.use(
   "/upload",

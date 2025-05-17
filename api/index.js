@@ -55,6 +55,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 
-app.listen(8000, () => {
-  console.log("Server connected on port 8000");
-});
+// For local development
+if (process.env.NODE_ENV !== "production") {
+  app.listen(8000, () => {
+    console.log("Server connected on port 8000");
+  });
+}
+
+// For Vercel deployment
+export default app;

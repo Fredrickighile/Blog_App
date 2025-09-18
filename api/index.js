@@ -8,6 +8,8 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { v2 as cloudinary } from "cloudinary";
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,12 +17,20 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // Enable CORS for all origins (or configure as needed)
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "https://blog-app-sable-three.vercel.app",
+      "https://blog-app-5471.vercel.app", // Add your frontend domain
     ],
     credentials: true,
   })
@@ -34,26 +44,42 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Blog API server is running" });
 });
 
-// Serve uploaded files statically
-app.use(
-  "/upload",
-  express.static(path.join(__dirname, "../client/public/upload"))
-);
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Create a temporary directory in the server's memory
-    cb(null, "/tmp/upload");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + file.originalname);
-  },
-});
-
+// Configure multer for memory storage (for Cloudinary upload)
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-app.post("/api/upload", upload.single("file"), function (req, res) {
-  const file = req.file;
-  res.status(200).json(file.filename);
+// Updated upload endpoint with Cloudinary
+app.post("/api/upload", upload.single("file"), async function (req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: "auto", // Automatically detect file type
+            folder: "blog_uploads", // Optional: organize uploads in folders
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        )
+        .end(req.file.buffer);
+    });
+
+    // Return the Cloudinary URL
+    res.status(200).json({
+      filename: result.public_id,
+      url: result.secure_url,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Upload failed" });
+  }
 });
 
 app.use("/api/auth", authRoutes);

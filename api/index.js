@@ -32,7 +32,8 @@ app.use(
       "http://localhost:5173",
       "https://blog-app-sable-three.vercel.app",
       "https://blog-app-5471.vercel.app", // Add your frontend domain
-      "https://blog-app-iub1.vercel.app",
+      "https://fred-blog.vercel.app",
+      "https://fredig.vercel.app",
     ],
     credentials: true,
   })

@@ -9,6 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -51,6 +52,25 @@ app.get("/api/debug", (req, res) => {
     hasApiKey: !!process.env.CLOUDINARY_API_KEY,
     hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
     cloudName: process.env.CLOUDINARY_CLOUD_NAME ? "Set" : "Not Set",
+  });
+});
+
+// Add this test endpoint after the debug endpoint
+app.get("/api/test-auth", (req, res) => {
+  const token = req.cookies.access_token;
+  if (!token) {
+    return res.json({
+      authenticated: false,
+      cookies: req.cookies,
+      origin: req.headers.origin,
+    });
+  }
+
+  jwt.verify(token, "jwtKey", (err, userInfo) => {
+    if (err) {
+      return res.json({ authenticated: false, error: err.message });
+    }
+    return res.json({ authenticated: true, userId: userInfo.id });
   });
 });
 

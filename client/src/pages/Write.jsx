@@ -168,16 +168,25 @@ const Write = () => {
             desc: value,
             cat,
             img: imgUrl,
+          },
+          {
+            withCredentials: true,
           }
         );
       } else {
-        await axios.post(`https://blog-app-sable-three.vercel.app/api/posts/`, {
-          title,
-          desc: value,
-          cat,
-          img: imgUrl,
-          date: new Date().toISOString(),
-        });
+        await axios.post(
+          `https://blog-app-sable-three.vercel.app/api/posts/`,
+          {
+            title,
+            desc: value,
+            cat,
+            img: imgUrl,
+            date: new Date().toISOString(),
+          },
+          {
+            withCredentials: true,
+          }
+        );
       }
 
       navigate("/");

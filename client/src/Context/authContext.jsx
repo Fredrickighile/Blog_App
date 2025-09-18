@@ -16,6 +16,12 @@ export const AuthContextProvider = ({ children }) => {
         withCredentials: true,
       }
     );
+
+    // Store token in localStorage
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+    }
+
     setCurrentUser(res.data);
   };
 
@@ -27,10 +33,10 @@ export const AuthContextProvider = ({ children }) => {
         withCredentials: true,
       }
     );
+    localStorage.removeItem("token");
     setCurrentUser(null);
   };
 
-  // Store user in localStorage when it changes
   useEffect(() => {
     localStorage.setItem("user", JSON.stringify(currentUser));
   }, [currentUser]);

@@ -2,7 +2,6 @@ import { db } from "../db.js";
 import jwt from "jsonwebtoken";
 
 export const getPosts = (req, res) => {
-  // Use explicit column names instead of * to ensure proper mapping
   const q = req.query.cat
     ? "SELECT id, title, description, img, category, date, uid FROM posts WHERE category = $1"
     : "SELECT id, title, description, img, category, date, uid FROM posts";
@@ -12,10 +11,9 @@ export const getPosts = (req, res) => {
   db.query(q, values, (err, data) => {
     if (err) return res.status(500).json(err);
 
-    // Map description to desc for frontend compatibility
     const posts = data.rows.map((post) => ({
       ...post,
-      desc: post.description, // Add desc field that maps to description
+      desc: post.description,
     }));
 
     return res.status(200).json(posts);
@@ -33,16 +31,22 @@ export const getPost = (req, res) => {
       return res.status(404).json("Post not found!");
     }
 
-    // Map description to desc for frontend compatibility
     const post = data.rows[0];
-    post.desc = post.description; // Add desc field that maps to description
+    post.desc = post.description;
 
     return res.status(200).json(post);
   });
 };
 
 export const addPost = (req, res) => {
-  const token = req.cookies.access_token;
+  // Try cookie first, then Authorization header
+  let token = req.cookies.access_token;
+
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    token = authHeader && authHeader.split(" ")[1];
+  }
+
   if (!token) return res.status(401).json("Not authenticated!");
 
   jwt.verify(token, "jwtKey", (err, userInfo) => {
@@ -64,21 +68,25 @@ export const addPost = (req, res) => {
 
     db.query(q, values, (err, data) => {
       if (err) return res.status(500).json(err);
-
       return res.status(201).json("Post has been created.");
     });
   });
 };
 
 export const deletePost = (req, res) => {
-  const token = req.cookies.access_token;
+  let token = req.cookies.access_token;
+
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    token = authHeader && authHeader.split(" ")[1];
+  }
+
   if (!token) return res.status(401).json("Not authenticated");
 
   jwt.verify(token, "jwtKey", (err, userInfo) => {
     if (err) return res.status(401).json("Token is not valid");
 
     const postId = req.params.id;
-    // Fixed the SQL query and parameter passing
     const q = "DELETE FROM posts WHERE id = $1 AND uid = $2";
 
     db.query(q, [postId, userInfo.id], (err, data) => {
@@ -94,7 +102,13 @@ export const deletePost = (req, res) => {
 };
 
 export const updatePost = (req, res) => {
-  const token = req.cookies.access_token;
+  let token = req.cookies.access_token;
+
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    token = authHeader && authHeader.split(" ")[1];
+  }
+
   if (!token) return res.status(401).json("Not authenticated!");
 
   jwt.verify(token, "jwtKey", (err, userInfo) => {
@@ -103,7 +117,6 @@ export const updatePost = (req, res) => {
     const postId = req.params.id;
     const { title, desc, img, cat } = req.body;
 
-    // First check if user owns the post
     const checkQuery = "SELECT * FROM posts WHERE id = $1 AND uid = $2";
 
     db.query(checkQuery, [postId, userInfo.id], (err, data) => {
@@ -113,7 +126,6 @@ export const updatePost = (req, res) => {
         return res.status(403).json("You can only update your own posts!");
       }
 
-      // If user owns the post, proceed with update
       const q =
         "UPDATE posts SET title = $1, description = $2, img = $3, category = $4 WHERE id = $5 AND uid = $6";
 
@@ -121,7 +133,6 @@ export const updatePost = (req, res) => {
 
       db.query(q, values, (err, data) => {
         if (err) return res.status(500).json(err);
-
         return res.json("Post has been updated.");
       });
     });

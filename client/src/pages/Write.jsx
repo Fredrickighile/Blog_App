@@ -138,7 +138,6 @@ const Write = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!title.trim()) {
       setError("Please enter a title");
       return;
@@ -160,6 +159,18 @@ const Write = () => {
     try {
       const imgUrl = file ? await upload() : state?.img || "";
 
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+
+      const headers = {
+        withCredentials: true,
+      };
+
+      // Add Authorization header if token exists
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       if (state) {
         await axios.put(
           `https://blog-app-sable-three.vercel.app/api/posts/${state.id}`,
@@ -169,9 +180,7 @@ const Write = () => {
             cat,
             img: imgUrl,
           },
-          {
-            withCredentials: true,
-          }
+          { headers }
         );
       } else {
         await axios.post(
@@ -183,16 +192,13 @@ const Write = () => {
             img: imgUrl,
             date: new Date().toISOString(),
           },
-          {
-            withCredentials: true,
-          }
+          { headers }
         );
       }
 
       navigate("/");
     } catch (err) {
       console.error("Error submitting post:", err);
-      // Ensure we only set a string error message
       const errorMessage =
         typeof err === "string"
           ? err
@@ -200,7 +206,7 @@ const Write = () => {
             (typeof err.response?.data === "string"
               ? err.response.data
               : err.message || "An error occurred while saving the post");
-      setError(errorMessage.toString()); // Ensure it's a string
+      setError(errorMessage.toString());
     } finally {
       setLoading(false);
     }

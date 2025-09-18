@@ -44,6 +44,16 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Blog API server is running" });
 });
 
+// DEBUG ENDPOINT - Put it here
+app.get("/api/debug", (req, res) => {
+  res.json({
+    hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+    hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+    hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ? "Set" : "Not Set",
+  });
+});
+
 // Configure multer for memory storage (for Cloudinary upload)
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -78,7 +88,7 @@ app.post("/api/upload", upload.single("file"), async function (req, res) {
     });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ error: "Upload failed" });
+    res.status(500).json({ error: "Upload failed", details: error.message });
   }
 });
 

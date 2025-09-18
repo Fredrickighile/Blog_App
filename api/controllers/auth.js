@@ -62,9 +62,13 @@ export const login = (req, res) => {
     const token = jwt.sign({ id: user.id }, "jwtKey");
 
     const { password, ...other } = user; // Remove password from response
+
     res
       .cookie("access_token", token, {
         httpOnly: true,
+        secure: true, // Required for cross-origin HTTPS
+        sameSite: "none", // Required for cross-origin
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
       })
       .status(200)
       .json(other);

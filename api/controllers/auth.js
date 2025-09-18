@@ -78,7 +78,9 @@ export const login = (req, res) => {
 export const logout = (req, res) => {
   res
     .clearCookie("access_token", {
+      httpOnly: true, // Add this
       sameSite: "none",
+
       secure: true,
     })
     .status(200)

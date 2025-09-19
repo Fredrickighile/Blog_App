@@ -22,9 +22,6 @@ const Contact = () => {
     try {
       const response = await fetch("https://formspree.io/f/xjkwwoqj", {
         method: "POST",
-        headers: {
-          Accept: "application/json",
-        },
         body: new FormData(e.target),
       });
 

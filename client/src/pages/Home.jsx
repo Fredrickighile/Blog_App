@@ -181,7 +181,14 @@ function Home() {
                 <div className="relative aspect-video overflow-hidden">
                   {post.img ? (
                     <LazyLoadImage
-                      src={`/upload/${post.img}`}
+                      src={
+                        typeof post.img === "string" && post.img.startsWith("{")
+                          ? JSON.parse(post.img).url ||
+                            JSON.parse(post.img).filename
+                          : post.img.startsWith("http")
+                          ? post.img
+                          : `/upload/${post.img}`
+                      }
                       alt={post.title}
                       effect="blur"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

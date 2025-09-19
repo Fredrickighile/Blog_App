@@ -92,8 +92,8 @@ app.post("/api/upload", upload.single("file"), async function (req, res) {
       cloudinary.uploader
         .upload_stream(
           {
-            resource_type: "auto", // Automatically detect file type
-            folder: "blog_uploads", // Optional: organize uploads in folders
+            resource_type: "auto",
+            folder: "blog_uploads",
           },
           (error, result) => {
             if (error) reject(error);
@@ -103,11 +103,8 @@ app.post("/api/upload", upload.single("file"), async function (req, res) {
         .end(req.file.buffer);
     });
 
-    // Return the Cloudinary URL
-    res.status(200).json({
-      filename: result.public_id,
-      url: result.secure_url,
-    });
+    // ✅ RETURN ONLY THE URL STRING, not an object
+    res.status(200).json(result.secure_url);
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({ error: "Upload failed", details: error.message });

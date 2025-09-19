@@ -23,7 +23,13 @@ function Register() {
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post("http://localhost:8000/api/auth/register", input);
+      await axios.post(
+        "https://blog-app-sable-three.vercel.app/api/auth/register", // ✅ FIXED URL
+        input,
+        {
+          withCredentials: true, // ✅ ADD THIS
+        }
+      );
       navigate("/login");
     } catch (err) {
       setError(err.response?.data || "An error occurred during registration");

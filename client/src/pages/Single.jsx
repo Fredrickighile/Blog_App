@@ -63,14 +63,22 @@ const Single = () => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+
+      const config = {
+        withCredentials: true,
+        headers: {},
+      };
+
+      // Add Authorization header if token exists
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+
       await axios.delete(
         `https://blog-app-sable-three.vercel.app/api/posts/${postId}`,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        config
       );
       navigate("/");
     } catch (err) {
@@ -81,7 +89,6 @@ const Single = () => {
       setIsDeleting(false);
     }
   };
-
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
@@ -170,7 +177,14 @@ const Single = () => {
 
   return (
     <>
-      {showDeleteModal && <DeleteModal />}
+      {showDeleteModal && (
+        <DeleteModal
+          post={post}
+          setShowDeleteModal={setShowDeleteModal}
+          isDeleting={isDeleting}
+          handleDelete={handleDelete}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20 fade-in">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -179,7 +193,13 @@ const Single = () => {
             {/* Post Image */}
             {post.img && (
               <LazyLoadImage
-                src={`/upload/${post.img}`}
+                src={
+                  typeof post.img === "string" && post.img.startsWith("{")
+                    ? JSON.parse(post.img).url || JSON.parse(post.img).filename
+                    : post.img.startsWith("http")
+                    ? post.img
+                    : `/upload/${post.img}`
+                }
                 alt={post.title}
                 effect="blur"
                 className="w-full h-auto max-h-[32rem] object-cover rounded-2xl shadow-md"
@@ -302,7 +322,6 @@ const Single = () => {
     </>
   );
 };
-
 const DeleteModal = ({
   post,
   setShowDeleteModal,
@@ -317,7 +336,7 @@ const DeleteModal = ({
     >
       <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete Post</h3>
       <p className="text-gray-600 mb-6">
-        Are you sure you want to delete "{post.title}"? This action cannot be
+        Are you sure you want to delete "{post?.title}"? This action cannot be
         undone.
       </p>
       <div className="flex justify-end gap-3">

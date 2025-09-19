@@ -17,7 +17,11 @@ const Write = () => {
   const [value, setValue] = useState(state?.desc || "");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(
-    state?.img ? `/upload/${state.img}` : null
+    state?.img
+      ? state.img.startsWith("http")
+        ? state.img
+        : `/upload/${state.img}`
+      : null
   );
   const [cat, setCat] = useState(state?.category || "");
   const [error, setError] = useState("");
@@ -123,15 +127,27 @@ const Write = () => {
           },
         }
       );
-      return res.data;
+
+      // Handle both string URLs and JSON objects
+      let uploadedUrl = res.data;
+      if (typeof uploadedUrl === "object" && uploadedUrl.url) {
+        uploadedUrl = uploadedUrl.url;
+      } else if (
+        typeof uploadedUrl === "string" &&
+        uploadedUrl.startsWith("{")
+      ) {
+        const parsed = JSON.parse(uploadedUrl);
+        uploadedUrl = parsed.url || parsed.filename;
+      }
+
+      return uploadedUrl;
     } catch (err) {
       console.error("Error uploading file:", err);
-      // Extract just the message from the error
       const errorMessage =
         err.response?.data?.message || typeof err.response?.data === "string"
           ? err.response.data
           : err.message || "Image upload failed";
-      throw new Error(errorMessage); // Throw just the message string
+      throw new Error(errorMessage);
     }
   };
 
@@ -162,13 +178,14 @@ const Write = () => {
       // Get token from localStorage
       const token = localStorage.getItem("token");
 
-      const headers = {
+      const config = {
         withCredentials: true,
+        headers: {},
       };
 
       // Add Authorization header if token exists
       if (token) {
-        headers.Authorization = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
       }
 
       if (state) {
@@ -180,7 +197,7 @@ const Write = () => {
             cat,
             img: imgUrl,
           },
-          { headers }
+          config // ✅ FIXED: Use config object
         );
       } else {
         await axios.post(
@@ -192,7 +209,7 @@ const Write = () => {
             img: imgUrl,
             date: new Date().toISOString(),
           },
-          { headers }
+          config // ✅ FIXED: Use config object
         );
       }
 

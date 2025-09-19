@@ -10,12 +10,14 @@ import TermsOfService from "./pages/TermsOfService";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
 import Contact from "./pages/Contact";
+import ScrollToTop from "./Components/ScrollToTop"; // Add this import
 import "./style.css";
 
 const Layout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
+      <ScrollToTop /> {/* Add ScrollToTop here */}
       <main className="flex-grow">
         <Outlet />
       </main>

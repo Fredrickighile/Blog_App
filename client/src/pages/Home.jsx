@@ -124,11 +124,12 @@ function Home() {
           {" "}
           {/* Added pt-8 here for extra spacing */}
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            Welcome to Our Fred Blog
+            Welcome to Fred Blog
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Discover insightful articles, creative stories, and professional
-            advice
+            advice on cutting-edge cybersecurity, ethical hacking, and
+            next-generation technology strategies.
           </p>
           {/* Search Bar */}
           <div className="mt-8 max-w-2xl mx-auto relative">

@@ -323,3 +323,66 @@
 .editor-container .ql-editor {
   min-height: 250px !important;
 }
+
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1f2937 !important;
+    color: #f9fafb !important;
+  }
+  
+  /* Navbar */
+  .navbar {
+    background-color: rgba(31, 41, 55, 0.9) !important;
+    border-color: #374151 !important;
+  }
+  
+  /* Cards and backgrounds */
+  .card, .auth-form, .menu-item {
+    background-color: #374151 !important;
+    color: #f9fafb !important;
+  }
+  
+  /* Text colors */
+  .post-content h1,
+  .single-content h1,
+  .single-menu h1,
+  .single-post h2 {
+    color: #f9fafb !important;
+  }
+  
+  .post-content p,
+  .navbar-links h6,
+  .footer-text {
+    color: #d1d5db !important;
+  }
+  
+  /* Inputs and forms */
+  .input-primary {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f9fafb !important;
+  }
+  
+  /* Editor */
+  .ql-toolbar {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+  }
+  
+  .ql-container, .ql-editor {
+    background-color: #1f2937 !important;
+    color: #f9fafb !important;
+  }
+  
+  /* Links */
+  a {
+    color: #60a5fa !important;
+  }
+  
+  /* Borders */
+  .border-gray-100, .border-gray-200, .border-secondary-200 {
+    border-color: #4b5563 !important;
+  }
+}

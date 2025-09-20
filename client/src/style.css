@@ -325,47 +325,83 @@
 }
 
 
-/* Dark Mode Support */
+/* Dark Mode Support - FIXED */
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #1f2937 !important;
     color: #f9fafb !important;
   }
   
-  /* Navbar */
-  .navbar {
+  /* Navbar - Fixed */
+  nav, .navbar {
     background-color: rgba(31, 41, 55, 0.9) !important;
     border-color: #374151 !important;
   }
   
-  /* Cards and backgrounds */
-  .card, .auth-form, .menu-item {
-    background-color: #374151 !important;
-    color: #f9fafb !important;
+  /* Fred Blog gradient text - Fixed */
+  .bg-gradient-to-r.from-blue-600.to-indigo-600 {
+    background: linear-gradient(to right, #60a5fa, #a78bfa) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
   }
   
-  /* Text colors */
-  .post-content h1,
-  .single-content h1,
-  .single-menu h1,
-  .single-post h2 {
-    color: #f9fafb !important;
-  }
-  
-  .post-content p,
-  .navbar-links h6,
-  .footer-text {
+  /* Text colors - Fixed */
+  .text-gray-600:not(input):not(textarea) {
     color: #d1d5db !important;
   }
   
-  /* Inputs and forms */
-  .input-primary {
-    background-color: #374151 !important;
-    border-color: #4b5563 !important;
+  .text-gray-800:not(input):not(textarea), 
+  .text-gray-900:not(input):not(textarea) {
     color: #f9fafb !important;
   }
   
-  /* Editor */
+  .text-gray-700:not(input):not(textarea) {
+    color: #e5e7eb !important;
+  }
+  
+  .text-gray-500:not(input):not(textarea) {
+    color: #9ca3af !important;
+  }
+  
+  /* Cards - Fixed to exclude login form */
+  .bg-white:not(.rounded-2xl.shadow-xl) {
+    background-color: #374151 !important;
+    color: #f9fafb !important;
+  }
+  
+  /* Main content backgrounds */
+  .bg-gradient-to-br {
+    background: linear-gradient(to bottom right, #1f2937, #111827) !important;
+  }
+  
+  /* Home page cards */
+  .bg-white.rounded-2xl.shadow-sm {
+    background-color: #374151 !important;
+    color: #f9fafb !important;
+  }
+  
+  /* Borders - Fixed */
+  .border-gray-100:not(input):not(textarea), 
+  .border-gray-200:not(input):not(textarea) {
+    border-color: #4b5563 !important;
+  }
+  
+  /* Links */
+  a {
+    color: #60a5fa !important;
+  }
+  
+  /* Keep login form inputs LIGHT */
+  .bg-gray-50 {
+    background-color: #f9fafb !important;
+    color: #1f2937 !important;
+  }
+  
+  .border-gray-200 {
+    border-color: #e5e7eb !important;
+  }
+  
+  /* Editor - Only apply to editor */
   .ql-toolbar {
     background-color: #374151 !important;
     border-color: #4b5563 !important;
@@ -374,15 +410,5 @@
   .ql-container, .ql-editor {
     background-color: #1f2937 !important;
     color: #f9fafb !important;
-  }
-  
-  /* Links */
-  a {
-    color: #60a5fa !important;
-  }
-  
-  /* Borders */
-  .border-gray-100, .border-gray-200, .border-secondary-200 {
-    border-color: #4b5563 !important;
   }
 }

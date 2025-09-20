@@ -18,7 +18,7 @@ export const AuthContextProvider = ({ children }) => {
         }
       );
 
-      console.log("Login response:", res.data); // Debug log
+      // console.log("Login response:", res.data); // Debug log
 
       // Store the COMPLETE user object including id, username, etc.
       const userData = res.data;

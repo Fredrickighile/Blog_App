@@ -16,10 +16,21 @@ function Menu({ cat }) {
       setIsLoading(true);
       setError(null);
       try {
+        // Get current post ID from URL
+        const currentPostId = parseInt(window.location.pathname.split("/")[2]);
+
+        // Get ALL posts
         const res = await axios.get(
-          `https://blog-app-sable-three.vercel.app/api/posts/?cat=${cat}`
+          `https://blog-app-sable-three.vercel.app/api/posts/`
         );
-        setPosts(res.data);
+
+        // Filter out the current post and shuffle
+        const otherPosts = res.data
+          .filter((post) => post.id !== currentPostId)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        setPosts(otherPosts);
       } catch (err) {
         console.error("Error fetching related posts:", err);
         setError("Could not load related posts");
@@ -27,7 +38,6 @@ function Menu({ cat }) {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, [cat]);
 
@@ -77,7 +87,14 @@ function Menu({ cat }) {
             >
               {post.img && (
                 <LazyLoadImage
-                  src={`/upload/${post.img}`}
+                  src={
+                    typeof post.img === "string" && post.img.startsWith("{")
+                      ? JSON.parse(post.img).url ||
+                        JSON.parse(post.img).filename
+                      : post.img.startsWith("http")
+                      ? post.img
+                      : `/upload/${post.img}`
+                  }
                   alt={post.title}
                   effect="blur"
                   className="w-full h-48 object-cover rounded-lg"

@@ -18,6 +18,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// ✅ FIX: Hide Express/Node version from response headers
+// Fixes "Server Leaks Version Information" alert
+app.disable("x-powered-by");
+
 // ✅ FIX 1: Security Headers Middleware (fixes CSP, Clickjacking, HSTS, X-Content-Type, Cache-Control)
 app.use((req, res, next) => {
   // Fix: Content Security Policy (CSP) Header Not Set

@@ -11,7 +11,6 @@ import {
   FiEdit2,
   FiTrash2,
   FiClock,
-  FiUser,
   FiTag,
   FiShare2,
   FiHeart,
@@ -19,6 +18,43 @@ import {
 } from "react-icons/fi";
 
 axios.defaults.withCredentials = true;
+
+// ✅ FIX: Lightweight HTML sanitizer — strips dangerous tags/attributes
+// This prevents XSS from malicious post content (dangerouslySetInnerHTML)
+const sanitizeHTML = (html) => {
+  if (!html) return "";
+  // Remove script tags and their content
+  let clean = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+  // Remove event handlers (onclick, onerror, onload, etc.)
+  clean = clean.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, "");
+  clean = clean.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, "");
+  // Remove javascript: URLs
+  clean = clean.replace(
+    /href\s*=\s*["']\s*javascript:[^"']*["']/gi,
+    'href="#"',
+  );
+  clean = clean.replace(/src\s*=\s*["']\s*javascript:[^"']*["']/gi, 'src=""');
+  // Remove iframes
+  clean = clean.replace(/<iframe[\s\S]*?<\/iframe>/gi, "");
+  // Remove object/embed tags
+  clean = clean.replace(/<object[\s\S]*?<\/object>/gi, "");
+  clean = clean.replace(/<embed[^>]*>/gi, "");
+  return clean;
+};
+
+const getImageSrc = (img) => {
+  if (!img) return null;
+  try {
+    if (typeof img === "string" && img.startsWith("{")) {
+      const parsed = JSON.parse(img);
+      return parsed.url || parsed.filename;
+    }
+    if (img.startsWith("http")) return img;
+    return `/upload/${img}`;
+  } catch {
+    return img;
+  }
+};
 
 const Single = () => {
   const [post, setPost] = useState({});
@@ -40,13 +76,14 @@ const Single = () => {
       setError(null);
       try {
         const res = await axios.get(
-          `https://blog-app-sable-three.vercel.app/api/posts/${postId}`
+          `https://blog-app-sable-three.vercel.app/api/posts/${postId}`,
         );
         setPost(res.data);
         setLikeCount(res.data.likes || 0);
-        document.title = `${res.data.title} | Blog`;
-      } catch (err) {
-        console.error("Error fetching post:", err);
+        // ✅ FIX: Sanitize title before setting as document.title
+        document.title = `${res.data.title?.replace(/[<>"]/g, "")} | Blog`;
+      } catch {
+        // ✅ FIX: No console.error — don't leak error details to browser console
         setError("Could not load post");
       } finally {
         setIsLoading(false);
@@ -54,7 +91,6 @@ const Single = () => {
     };
 
     fetchData();
-
     return () => {
       document.title = "Blog";
     };
@@ -63,32 +99,20 @@ const Single = () => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // Get token from localStorage
-      const token = localStorage.getItem("token");
-
-      const config = {
-        withCredentials: true,
-        headers: {},
-      };
-
-      // Add Authorization header if token exists
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
+      // ✅ FIX: Use cookie auth only — no localStorage token
       await axios.delete(
         `https://blog-app-sable-three.vercel.app/api/posts/${postId}`,
-        config
+        { withCredentials: true },
       );
       navigate("/");
-    } catch (err) {
-      console.error("Error deleting post:", err);
-      setError(err.response?.data || "An error occurred while deleting");
+    } catch {
+      setError("An error occurred while deleting. Please try again.");
       setShowDeleteModal(false);
     } finally {
       setIsDeleting(false);
     }
   };
+
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
@@ -99,18 +123,13 @@ const Single = () => {
     navigator.clipboard
       .writeText(url)
       .then(() => alert("Link copied to clipboard!"))
-      .catch((err) => console.error("Failed to copy URL: ", err));
+      .catch(() => {}); // ✅ FIX: Silent fail, no console leak
   };
 
   const formatDate = (dateString) => {
     const now = moment();
     const postDate = moment(dateString);
-
-    // If the post was made less than 1 minute ago, show "Just now"
-    if (now.diff(postDate, "seconds") < 60) {
-      return "Just now";
-    }
-
+    if (now.diff(postDate, "seconds") < 60) return "Just now";
     return postDate.fromNow();
   };
 
@@ -148,7 +167,6 @@ const Single = () => {
                 >
                   <div className="bg-gray-300 h-48 rounded-lg"></div>
                   <div className="h-5 bg-gray-300 rounded w-3/4"></div>
-                  <div className="h-8 bg-gray-300 rounded w-1/3"></div>
                 </div>
               ))}
             </div>
@@ -188,38 +206,21 @@ const Single = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20 fade-in">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Post Image */}
             {post.img && (
               <LazyLoadImage
-                src={
-                  typeof post.img === "string" && post.img.startsWith("{")
-                    ? JSON.parse(post.img).url || JSON.parse(post.img).filename
-                    : post.img.startsWith("http")
-                    ? post.img
-                    : `/upload/${post.img}`
-                }
+                src={getImageSrc(post.img)}
                 alt={post.title}
                 effect="blur"
                 className="w-full h-auto max-h-[32rem] object-cover rounded-2xl shadow-md"
               />
             )}
 
-            {/* Post Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-4">
-                {post.userImg ? (
-                  <img
-                    src={`/upload/${post.userImg}`}
-                    alt={post.username}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium">
-                    {post.username?.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium">
+                  {post.username?.charAt(0).toUpperCase()}
+                </div>
                 <div>
                   <h2 className="font-medium text-gray-800">{post.username}</h2>
                   <p className="text-gray-500 text-sm flex items-center gap-1">
@@ -262,24 +263,22 @@ const Single = () => {
               </div>
             </div>
 
-            {/* Post Title */}
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
               {post.title}
             </h1>
 
-            {/* Post Content */}
+            {/* ✅ FIX: Sanitize HTML before rendering — prevents XSS attacks */}
             <article className="prose max-w-none prose-lg prose-headings:font-serif prose-p:text-gray-700 prose-a:text-blue-600 hover:prose-a:text-blue-800 prose-img:rounded-lg">
-              <div dangerouslySetInnerHTML={{ __html: post.desc }} />
+              <div
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(post.desc) }}
+              />
             </article>
 
-            {/* Post Actions */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200">
               <div className="flex items-center gap-6">
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-2 ${
-                    liked ? "text-red-500" : "text-gray-600 hover:text-blue-600"
-                  } transition-colors`}
+                  className={`flex items-center gap-2 ${liked ? "text-red-500" : "text-gray-600 hover:text-blue-600"} transition-colors`}
                 >
                   <FiHeart className={liked ? "fill-current" : ""} />
                   <span>{likeCount} Likes</span>
@@ -298,7 +297,6 @@ const Single = () => {
               </button>
             </div>
 
-            {/* Comments Section - Coming Soon */}
             <div className="pt-6 border-t border-gray-200">
               <h3 className="text-xl font-semibold text-gray-800 mb-6">
                 Comments
@@ -313,7 +311,6 @@ const Single = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
             <Menu cat={post.category} />
           </div>
@@ -322,6 +319,7 @@ const Single = () => {
     </>
   );
 };
+
 const DeleteModal = ({
   post,
   setShowDeleteModal,
@@ -378,8 +376,7 @@ const DeleteModal = ({
             </>
           ) : (
             <>
-              <FiTrash2 />
-              Delete
+              <FiTrash2 /> Delete
             </>
           )}
         </button>

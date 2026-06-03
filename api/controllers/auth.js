@@ -9,6 +9,14 @@ export const register = async (req, res) => {
     return res.status(400).json("Username, email and password are required");
   }
 
+  // ✅ FIX: Basic input validation
+  if (username.length < 3 || username.length > 30) {
+    return res.status(400).json("Username must be between 3 and 30 characters");
+  }
+  if (password.length < 8) {
+    return res.status(400).json("Password must be at least 8 characters");
+  }
+
   try {
     const checkQuery = "SELECT * FROM users WHERE email = $1 OR username = $2";
     const checkResult = await db.query(checkQuery, [email, username]);
@@ -17,7 +25,7 @@ export const register = async (req, res) => {
       return res.status(409).json("User already exists!");
     }
 
-    const salt = bcrypt.genSaltSync(10);
+    const salt = bcrypt.genSaltSync(12); // ✅ FIX: increased from 10 to 12 rounds
     const hash = bcrypt.hashSync(password, salt);
 
     const insertQuery =
@@ -36,23 +44,30 @@ export const login = (req, res) => {
   const q = "SELECT * FROM users WHERE username = $1";
 
   db.query(q, [req.body.username], (err, data) => {
-    if (err) return res.json(err);
+    if (err) return res.status(500).json("Something went wrong"); // ✅ FIX: no raw error leakage
 
-    if (data.rows.length === 0) return res.status(404).json("User not found");
+    // ✅ FIX: Generic message — don't reveal whether username or password was wrong
+    if (data.rows.length === 0) {
+      return res.status(401).json("Invalid credentials");
+    }
 
     const user = data.rows[0];
     const isPasswordCorrect = bcrypt.compareSync(
       req.body.password,
-      user.password
+      user.password,
     );
 
-    if (!isPasswordCorrect)
-      return res.status(400).json("Wrong username or password");
+    if (!isPasswordCorrect) {
+      return res.status(401).json("Invalid credentials"); // ✅ FIX: same message as above
+    }
 
-    const token = jwt.sign({ id: user.id }, "jwtKey");
+    // ✅ FIX: Use JWT_SECRET from environment, with expiry
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
     const { password, ...other } = user;
 
-    // Return token in response AND set cookie
     res
       .cookie("access_token", token, {
         httpOnly: true,

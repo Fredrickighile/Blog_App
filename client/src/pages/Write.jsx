@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import axios from "axios";
 import { AuthContext } from "../Context/authContext";
 import { motion } from "framer-motion";
 import { FiX, FiImage, FiCheckCircle, FiArrowLeft } from "react-icons/fi";
 import { FaPenAlt, FaRocket } from "react-icons/fa";
+// ✅ FIX: Replaced react-quill (CVE-2021-3163) with @uiw/react-md-editor (no known CVEs)
+import MDEditor from "@uiw/react-md-editor";
 
 const Write = () => {
   const { currentUser } = useContext(AuthContext);
@@ -21,7 +21,7 @@ const Write = () => {
       ? state.img.startsWith("http")
         ? state.img
         : `/upload/${state.img}`
-      : null
+      : null,
   );
   const [cat, setCat] = useState(state?.category || "");
   const [error, setError] = useState("");
@@ -30,14 +30,10 @@ const Write = () => {
   const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
-    if (!currentUser) {
-      navigate("/login");
-    }
-
+    if (!currentUser) navigate("/login");
     document.title = state
       ? "Edit Post | Fred Blog"
       : "Create Post | Fred Blog";
-
     return () => {
       document.title = "Fred Blog";
     };
@@ -53,19 +49,14 @@ const Write = () => {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -73,36 +64,25 @@ const Write = () => {
 
   const handleFile = (file) => {
     if (!file) return;
-
     if (file.size > 2 * 1024 * 1024) {
       setError("Image size must be less than 2MB");
       return;
     }
-
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
       setError("Please select a valid image file (JPG, PNG, or WEBP)");
       return;
     }
-
     setFile(file);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
+    reader.onloadend = () => setPreview(reader.result);
     reader.readAsDataURL(file);
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
+    if (e.target.files[0]) handleFile(e.target.files[0]);
   };
-
-  const handleClick = () => {
-    document.getElementById("fileInput").click();
-  };
-
+  const handleClick = () => document.getElementById("fileInput").click();
   const removeImage = (e) => {
     e.stopPropagation();
     setFile(null);
@@ -113,55 +93,41 @@ const Write = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-
       const res = await axios.post(
         "https://blog-app-sable-three.vercel.app/api/upload",
         formData,
         {
+          withCredentials: true,
           onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+            setProgress(
+              Math.round((progressEvent.loaded * 100) / progressEvent.total),
             );
-            setProgress(percentCompleted);
           },
-        }
+        },
       );
-
       let uploadedUrl = res.data;
-      if (typeof uploadedUrl === "object" && uploadedUrl.url) {
+      if (typeof uploadedUrl === "object" && uploadedUrl.url)
         uploadedUrl = uploadedUrl.url;
-      } else if (
-        typeof uploadedUrl === "string" &&
-        uploadedUrl.startsWith("{")
-      ) {
+      else if (typeof uploadedUrl === "string" && uploadedUrl.startsWith("{")) {
         const parsed = JSON.parse(uploadedUrl);
         uploadedUrl = parsed.url || parsed.filename;
       }
-
       return uploadedUrl;
     } catch (err) {
-      console.error("Error uploading file:", err);
-      const errorMessage =
-        err.response?.data?.message || typeof err.response?.data === "string"
-          ? err.response.data
-          : err.message || "Image upload failed";
-      throw new Error(errorMessage);
+      throw new Error("Image upload failed");
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
+    e?.preventDefault();
     if (!title.trim()) {
       setError("Please enter a title");
       return;
     }
-
-    if (!value.trim() || value === "<p><br></p>") {
+    if (!value.trim()) {
       setError("Please enter post content");
       return;
     }
-
     if (!cat) {
       setError("Please select a category");
       return;
@@ -172,31 +138,18 @@ const Write = () => {
 
     try {
       const imgUrl = file ? await upload() : state?.img || "";
-      const token = localStorage.getItem("token");
 
-      const config = {
-        withCredentials: true,
-        headers: {},
-      };
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      const config = { withCredentials: true };
 
       if (state) {
         await axios.put(
           `https://blog-app-sable-three.vercel.app/api/posts/${state.id}`,
-          {
-            title,
-            desc: value,
-            cat,
-            img: imgUrl,
-          },
-          config
+          { title, desc: value, cat, img: imgUrl },
+          config,
         );
       } else {
         await axios.post(
-          `https://blog-app-sable-three.vercel.app/api/posts/`,
+          "https://blog-app-sable-three.vercel.app/api/posts/",
           {
             title,
             desc: value,
@@ -204,36 +157,19 @@ const Write = () => {
             img: imgUrl,
             date: new Date().toISOString(),
           },
-          config
+          config,
         );
       }
-
       navigate("/");
     } catch (err) {
-      console.error("Error submitting post:", err);
-      const errorMessage =
-        typeof err === "string"
-          ? err
-          : err.response?.data?.message ||
-            (typeof err.response?.data === "string"
-              ? err.response.data
-              : err.message || "An error occurred while saving the post");
-      setError(errorMessage.toString());
+      setError(
+        err.response?.data ||
+          err.message ||
+          "An error occurred while saving the post",
+      );
     } finally {
       setLoading(false);
     }
-  };
-
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, 5, 6, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["blockquote", "code-block"],
-      [{ color: [] }, { background: [] }],
-      ["link", "image"],
-      ["clean"],
-    ],
   };
 
   const categories = [
@@ -248,7 +184,6 @@ const Write = () => {
   return (
     <div className="min-h-screen pt-20 pb-8 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-        {/* Back Button */}
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, x: -20 }}
@@ -258,8 +193,7 @@ const Write = () => {
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium"
           >
-            <FiArrowLeft />
-            Back to posts
+            <FiArrowLeft /> Back to posts
           </button>
         </motion.div>
 
@@ -292,7 +226,6 @@ const Write = () => {
                   transition={{ delay: 0.3 }}
                 >
                   Share your thoughts, stories, and insights with the world.
-                  Every great post starts with a single word.
                 </motion.p>
               </div>
 
@@ -306,7 +239,8 @@ const Write = () => {
                 </motion.div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-8">
+                {/* Title */}
                 <motion.div
                   className="space-y-3"
                   initial={{ opacity: 0, y: 20 }}
@@ -330,12 +264,9 @@ const Write = () => {
                   />
                 </motion.div>
 
+                {/* Image Upload */}
                 <motion.div
-                  className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all duration-300 ${
-                    dragActive
-                      ? "border-blue-500 bg-blue-50 scale-105"
-                      : "border-gray-200 hover:border-blue-400 hover:bg-blue-50/50"
-                  }`}
+                  className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all duration-300 ${dragActive ? "border-blue-500 bg-blue-50 scale-105" : "border-gray-200 hover:border-blue-400 hover:bg-blue-50/50"}`}
                   onClick={handleClick}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
@@ -344,8 +275,6 @@ const Write = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   <input
                     type="file"
@@ -354,7 +283,6 @@ const Write = () => {
                     id="fileInput"
                     accept="image/png, image/jpeg, image/webp"
                   />
-
                   {preview ? (
                     <div className="relative">
                       <img
@@ -378,13 +306,13 @@ const Write = () => {
                         <FiImage className="text-blue-500 text-3xl" />
                       </div>
                       <h3 className="text-xl font-bold text-gray-800 mb-2">
-                        Add a stunning cover image
+                        Add a cover image
                       </h3>
                       <p className="text-gray-600 mb-2">
                         <span className="font-semibold text-blue-600">
                           Click to upload
                         </span>{" "}
-                        or drag and drop your image here
+                        or drag and drop
                       </p>
                       <p className="text-gray-500 text-sm">
                         PNG, JPG or WEBP (max. 2MB)
@@ -393,6 +321,7 @@ const Write = () => {
                   )}
                 </motion.div>
 
+                {/* ✅ Safe Markdown Editor — replaces vulnerable react-quill */}
                 <motion.div
                   className="space-y-3"
                   initial={{ opacity: 0, y: 20 }}
@@ -402,18 +331,23 @@ const Write = () => {
                   <label className="block text-gray-700 font-bold text-lg">
                     Tell Your Story
                   </label>
-                  <div className="editor-container border-2 border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:border-blue-300 transition-colors">
-                    <ReactQuill
-                      className="h-80 bg-white"
-                      theme="snow"
+                  <div
+                    data-color-mode="light"
+                    className="rounded-2xl overflow-hidden border-2 border-gray-200 hover:border-blue-300 transition-colors shadow-sm"
+                  >
+                    <MDEditor
                       value={value}
                       onChange={setValue}
-                      modules={modules}
+                      height={320}
+                      preview="edit"
                       placeholder="Start writing your amazing story here..."
                     />
                   </div>
+                  <p className="text-xs text-gray-400">
+                    Supports Markdown — **bold**, *italic*, # Heading, - lists
+                  </p>
                 </motion.div>
-              </form>
+              </div>
             </div>
           </motion.div>
 
@@ -425,7 +359,7 @@ const Write = () => {
             transition={{ delay: 0.3 }}
           >
             <div className="lg:sticky lg:top-8 space-y-6">
-              {/* Publish Section */}
+              {/* Publish */}
               <div className="bg-white rounded-3xl shadow-lg p-6 border border-gray-100">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -456,7 +390,7 @@ const Write = () => {
                     type="button"
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:shadow-2xl transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={!loading ? { scale: 1.05 } : {}}
                     whileTap={!loading ? { scale: 0.95 } : {}}
                   >
@@ -494,7 +428,7 @@ const Write = () => {
                 </div>
               </div>
 
-              {/* Category Section */}
+              {/* Category */}
               <div className="bg-white rounded-3xl shadow-lg p-6 border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
                   Choose Category
